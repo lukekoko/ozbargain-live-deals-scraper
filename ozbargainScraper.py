@@ -5,6 +5,19 @@ import datetime
 import logging
 import pandas as pd
 import re
+import mysql.connector
+
+db = mysql.connector.connect(
+  host="localhost",
+  user="lkokoftopoulos",
+  passwd="1234",
+  database='ozbargain'
+)
+
+cur = db.cursor()
+
+insert = 'INSERT INTO livedeals (timestamp, title, price, link) VALUES (%s, %s, %s, %s)'
+
 
 currencyRegex = r'\$((?:[0-9]{1,3},(?:[0-9]{3},)*[0-9]{3}|[0-9]+)(?:\.[0-9][0-9])?)'
 class Scraper:
@@ -21,6 +34,7 @@ class Scraper:
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.df.to_pickle('./store.pkl')
+		db.commit()
 
 	def fetchLiveDeals(self, hours, mins):
 		timeInSec = int((datetime.datetime.now() -
@@ -32,7 +46,11 @@ class Scraper:
 			dict['title'] = i['title']
 			dict['link'] = 'https://www.ozbargain.com.au' + i['link']
 			dict['price'] = price[0] if len(price) > 0 else ''
-			dict['timestamp'] = datetime.datetime.fromtimestamp(i['timestamp']).strftime('%d/%m/%y %H:%M')
+			dict['timestamp'] = datetime.datetime.fromtimestamp(i['timestamp']).strftime('%d/%m/%y %H:%M:%S')
+			try:
+				cur.execute(insert, (dict['timestamp'], dict['title'], dict['price'], dict['link']))
+			except mysql.connector.errors.IntegrityError:
+				pass
 			self.df = self.df.append(dict, ignore_index=True)
 		print(self.df)
 
@@ -50,7 +68,7 @@ class Scraper:
 def main():
 	with Scraper() as live:
 		live.resetDF()
-		live.fetchLiveDeals(1, 0)
+		live.fetchLiveDeals(24, 0)
 
 
 if __name__ == "__main__":
