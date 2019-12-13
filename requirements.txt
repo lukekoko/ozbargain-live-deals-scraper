@@ -1,4 +1,8 @@
-requests==2.20.0
 pandas==0.25.1
+requests==2.22.0
 beautifulsoup4==4.8.1
-mysql_connector_repackaged==0.3.1
+google_api_python_client==1.7.11
+google_auth_oauthlib==0.4.1
+mysql-connector-python==8.0.18
+protobuf==3.11.1
+twilio==6.35.0

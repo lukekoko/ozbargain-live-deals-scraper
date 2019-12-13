@@ -14,7 +14,7 @@ class SQL:
                 port="3306",
                 user="root",
                 passwd="1234",
-                database="ozbargin"
+                database="ozbargain"
             )
         except mysql.connector.ProgrammingError:
             logger.error("Could not connect to database", exc_info=True)

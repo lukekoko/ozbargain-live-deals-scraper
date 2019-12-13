@@ -1,4 +1,4 @@
-import config
+from config import config
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -15,7 +15,7 @@ from sql import SQL
 currencyRegex = r'\$((?:[0-9]{1,3},(?:[0-9]{3},)*[0-9]{3}|[0-9]+)(?:\.[0-9][0-9])?)'
 percentRegex = r'\d{1,2}%'
 
-logging.config.fileConfig('logger.ini')
+logging.config.fileConfig('./config/logger.ini')
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +35,7 @@ class Scraper:
 		self.db.close()
 
 	def fetchData(self, hours, mins):
-		# request data from ozbargin
+		# request data from ozbargain
 		timeInSec = int((datetime.datetime.now() -
 						 datetime.timedelta(hours=hours, minutes=mins)).timestamp())
 		try:
@@ -75,15 +75,4 @@ class Scraper:
 				yield term
 
 
-def main():
-	with Scraper() as scrape:
-		nots = Notifications()
-		rawData = scrape.fetchData(1, 0)
-		extractedData = scrape.extractData(rawData)
-		for i in scrape.searchDeals(extractedData):
-			nots.sendSMS(i)
 
-
-if __name__ == "__main__":
-	# setup()
-	main()
