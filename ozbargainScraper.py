@@ -10,6 +10,7 @@ import re
 import mysql.connector
 import time
 import sys
+from twilio.rest import Client
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def setup():
 class SQL:
 	def __init__(self):
 		try:
-			logger.info('Connecting to database')
+			logger.debug('Connecting to database')
 			self.db = mysql.connector.connect(
 				host="localhost",
 				port="3306",
@@ -52,12 +53,13 @@ class SQL:
 			sys.exit(0)
 		self.cur = self.db.cursor()
 		self.insertQuery = 'INSERT INTO livedeals (timestamp, title, price, link) VALUES ("{0}", "{1}", "{2}", "{3}") ON DUPLICATE KEY UPDATE title="{1}", price="{2}", link="{3}"'
+		logger.debug('Database connected')
 
 	def __enter__(self):
 		return self
 
 	def close(self):
-		logger.info("Closing database connection")
+		logger.debug("Closing database connection")
 		self.db.commit()
 		self.cur.close()
 		self.db.close()
@@ -89,7 +91,7 @@ class Scraper:
 		logger.debug('Scraper done')
 		self.db.close()
 
-	def fetchLiveDeals(self, hours, mins):
+	def fetchData(self, hours, mins):
 		# request data from ozbargin
 		timeInSec = int((datetime.datetime.now() -
 						 datetime.timedelta(hours=hours, minutes=mins)).timestamp())
@@ -97,12 +99,14 @@ class Scraper:
 			logger.debug('Fetching data')
 			request = requests.get(self.liveurl.format(timeInSec))
 			liveDealsPage = json.loads(request.text)
+			return liveDealsPage
 		except TypeError:
 			logger.error("Request to data failed", exc_info=True)
+			raise TypeError
 
-
+	def extractData(self, data):
 		# extract title, price/percentage, link and timestamp
-		for i in liveDealsPage['records']:
+		for i in data['records']:
 			dict = {}
 			price = re.search(currencyRegex, i['title'])
 			percentage = re.search(percentRegex, i['title'])
@@ -112,27 +116,43 @@ class Scraper:
 			) if price else percentage.group() if percentage else ''
 			dict['timestamp'] = datetime.datetime.fromtimestamp(
 				i['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
+			return dict
 			self.searchDeals(dict)
 			self.db.insertIntoSQL(dict)
 
 	def searchDeals(self, dict):
 		for term in self.searchTerms:
-			if (re.search(r'(?i) \b' + re.escape(term) + r'\b', dict['title'])):
-				logger.debug('Match found %s, %s', term, dict['title'])
-				self.notification(dict)
+			if (re.search(r'(?i)' + re.escape(term), dict['title'])):
+				Notifications().smsNotification(dict)
 				return dict
 
-	def notification(self, dict):
-		print(dict)
+class Notifications:
+	def __init__(self):
+		logger.debug('Notifications starting')
+		self.smsMessage = '\nAn item from you list was posted. \n\nTimestamp: {} \nTitle: {} \nPrice: {} \nLink: {}'
+		self.smsclient = Client(config.account_sid, config.auth_token)
 
+	def __enter__(self):
+		return self
 
+	def __exit__(self, exc_type, exc_value, traceback):
+		logger.debug('Notification done')
 
-
+	def smsNotification(self, dict):
+		logger.info('Match found: %s', dict['title'])
+		logger.debug('Sending sms') 
+		message = smsclient.messages.create(
+			body = self.smsMessage.format(dict['timestamp'], dict['title'], dict['price'], dict['link']),
+			from_='+14843010951',
+			to='+61478790532'
+		)
+		logger.debug('sms sent')
 
 def main():
-	searchTerms = ['nike', 'sandisk']
+	searchTerms = config.searchTerms
 	with Scraper(searchTerms) as live:
-		live.fetchLiveDeals(1, 0)
+		rawData = live.fetchData(1, 0)
+		extractedData = live.extractData(rawData)
 
 
 if __name__ == "__main__":
