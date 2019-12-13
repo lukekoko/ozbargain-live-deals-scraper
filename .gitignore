@@ -2,3 +2,6 @@
 *.pyc
 *.log
 _pycache_
+config.py
+credentials.json
+*.pickle

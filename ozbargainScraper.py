@@ -11,6 +11,14 @@ import mysql.connector
 import time
 import sys
 from twilio.rest import Client
+import pickle
+import os.path
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,11 +85,11 @@ class SQL:
 
 
 class Scraper:
-	def __init__(self, searchTerms):
+	def __init__(self):
 		logger.debug('Scraper starting')
 		self.dealsUrl = 'https://www.ozbargain.com.au/deals'
 		self.liveurl = 'https://www.ozbargain.com.au/api/live?last={}&disable=comments%2Cvotes%2Cwiki&types=Comp%2CForum'
-		self.searchTerms = searchTerms
+		self.searchTerms = config.searchTerms
 		self.db = SQL()
 
 	def __enter__(self):
@@ -131,12 +139,35 @@ class Notifications:
 		logger.debug('Notifications starting')
 		self.smsMessage = '\nAn item from you list was posted. \n\nTimestamp: {} \nTitle: {} \nPrice: {} \nLink: {}'
 		self.smsclient = Client(config.account_sid, config.auth_token)
+		self.service = self.connectGmail()
 
 	def __enter__(self):
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		logger.debug('Notification done')
+
+	def connectGmail(self):
+		creds = None
+		if os.path.exists('token.pickle'):
+			with open('token.pickle', 'rb') as token:
+				creds = pickle.load(token)
+		# If there are no (valid) credentials available, let the user log in.
+		if not creds or not creds.valid:
+			if creds and creds.expired and creds.refresh_token:
+				creds.refresh(Request())
+			else:
+				flow = InstalledAppFlow.from_client_secrets_file(
+					'credentials.json', SCOPES)
+				creds = flow.run_local_server(port=0)
+			# Save the credentials for the next run
+			with open('token.pickle', 'wb') as token:
+				pickle.dump(creds, token)
+		service = build('gmail', 'v1', credentials=creds)
+		return service
+
+	def sendEmail():
+		
 
 	def smsNotification(self, dict):
 		logger.info('Match found: %s', dict['title'])
@@ -149,10 +180,11 @@ class Notifications:
 		logger.debug('sms sent')
 
 def main():
-	searchTerms = config.searchTerms
-	with Scraper(searchTerms) as live:
-		rawData = live.fetchData(1, 0)
-		extractedData = live.extractData(rawData)
+	# with Scraper() as live:
+	# 	rawData = live.fetchData(1, 0)
+	# 	extractedData = live.extractData(rawData)
+	Notifications.connectGmail()
+
 
 
 if __name__ == "__main__":
