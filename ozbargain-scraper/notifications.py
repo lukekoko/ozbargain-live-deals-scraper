@@ -74,10 +74,10 @@ class Notifications:
 			logger.error('An error occurred', exc_info=True)
 		
 
-	def sendSMS(self, dict):
+	def sendSMS(self, content):
 		logger.debug('Sending sms')
-		timestamp = dict['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%d/%m/%Y %H:%M:%S')
-		messageText = 'An item from you list was posted. \n\n + ' + bodyText.format(dict['title'], dict['price'], timestamp, dict['link'])
+		timestamp = content[1]['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%d/%m/%Y %H:%M:%S')
+		messageText = 'An item matching "{}" was posted. \n\n'.format(content[0]) + bodyText.format( content[1]['title'], content[1]['price'], timestamp, content[1]['link'])
 		message = self.smsclient.messages.create(
 			body=messageText,
 			from_='+14843010951',
