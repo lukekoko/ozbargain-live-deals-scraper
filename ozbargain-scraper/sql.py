@@ -2,6 +2,7 @@
 import mysql.connector
 import sys
 import logging
+from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ class SQL:
         try:
             logger.debug('Connecting to database')
             self.db = mysql.connector.connect(
-                host="localhost",
+                host=config.settings['sql-host'],
                 port="3306",
                 user="root",
                 passwd="1234",
@@ -35,10 +36,16 @@ class SQL:
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def insertIntoSQL(self, dict):
-        try:
-            query = self.insertQuery.format(
-                dict['timestamp'], dict['title'], dict['price'], dict['link'])
-            self.cur.execute(query)
-        except mysql.connector.errors.IntegrityError:
-            pass
+    def insertIntoSQL(self, list):
+        logger.debug('Inserting into SQL')
+        for item in list:
+            try:
+                query = self.insertQuery.format(
+                    item['timestamp'].strftime('%Y-%m-%d %H:%M:%S'), item['title'], item['price'], item['link']
+                    )
+                self.cur.execute(query)
+            except mysql.connector.errors.IntegrityError:
+                pass
+        self.db.commit()
+        logger.debug('Data inserted into SQL')
+

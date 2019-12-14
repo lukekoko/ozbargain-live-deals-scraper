@@ -1,4 +1,4 @@
-from python:3
+FROM python:3
 
 WORKDIR /usr/src/app
 
@@ -7,4 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "./ozbargainScraper.py"]
+CMD ["python", "./ozbargain-scraper/main.py"]
+
+# sudo docker build -t "name" .
+# sudo docker run -it --rm --name pythonrun "name"

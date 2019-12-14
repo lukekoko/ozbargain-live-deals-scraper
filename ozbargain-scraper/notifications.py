@@ -9,6 +9,7 @@ from google.auth.transport.requests import Request
 from apiclient import errors, discovery
 from email.mime.text import MIMEText
 import base64
+from pytz import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 class Notifications:
 	def __init__(self):
 		logger.debug('Notifications starting')
-		self.smsMessage = '\nAn item from you list was posted. \n\nTimestamp: {} \nTitle: {} \nPrice: {} \nLink: {}'
+		self.smsMessage = '\nAn item from you list was posted. \n\nTitle: {} \nPrice: {} \nTimestamp: {} \nLink: {}'
 		self.smsclient = Client(config.account_sid, config.auth_token)
 		self.service = self.connectGmail()
 
@@ -39,7 +40,7 @@ class Notifications:
 				creds.refresh(Request())
 			else:
 				flow = InstalledAppFlow.from_client_secrets_file(
-					'./config/credentials.json', SCOPES)
+					config.settings['gmail-credentials'], SCOPES)
 				creds = flow.run_local_server(port=0)
 			# Save the credentials for the next run
 			with open('token.pickle', 'wb') as token:
@@ -66,9 +67,10 @@ class Notifications:
 
 	def sendSMS(self, dict):
 		logger.debug('Sending sms')
+		timestamp = dict['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%Y-%m-%d %H:%M:%S')
 		message = self.smsclient.messages.create(
 			body=self.smsMessage.format(
-				dict['timestamp'], dict['title'], dict['price'], dict['link']),
+				timestamp, dict['title'], dict['price'], dict['link']),
 			from_='+14843010951',
 			to='+61478790532'
 		)
