@@ -13,12 +13,15 @@ from pytz import timezone
 
 logger = logging.getLogger(__name__)
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+
+bodyText = 'Title: {} \nPrice: {} \nTimestamp: {} \nLink: {}'
+bodyTextHTML = '<p style="font-size:16px"><strong>Title: </strong> {} <br><strong>Price: </strong>{} <br><strong>Timestamp: </strong>{} <br><strong>Link: </strong>{}</p>'
+
 
 class Notifications:
 	def __init__(self):
 		logger.debug('Notifications starting')
-		self.smsMessage = '\nAn item from you list was posted. \n\nTitle: {} \nPrice: {} \nTimestamp: {} \nLink: {}'
 		self.smsclient = Client(config.account_sid, config.auth_token)
 		self.service = self.connectGmail()
 
@@ -49,28 +52,34 @@ class Notifications:
 		logger.debug('Gmail connected')
 		return service
 
-	def createEmailMessage(self, sender, to, subject, message_text):
-		message = MIMEText(message_text)
-		message['to'] = to
-		message['from'] = sender
+	def createEmailMessage(self, subject, message_text):
+		logger.debug('Creating message')
+		message = MIMEText(message_text, 'html')
+		message['to'] = config.settings['email-receiver']
+		message['from'] = config.settings['email-sender']
 		message['subject'] = subject
-		return {'raw': base64.urlsafe_b64encode(message.as_string())}
+		return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
-	def sendEmail(self, service, user_id, message):
+	def sendEmail(self, content):
+		timestamp = content[1]['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%d/%m/%Y %H:%M:%S')
+		subject = 'Ozbargain-scraper: An item matching "{}" has been posted'.format(content[0])
+		message_text = bodyTextHTML.format(content[1]['title'], content[1]['price'], timestamp,  content[1]['link'])
+		message = self.createEmailMessage(subject, message_text)
+		logger.debug('Sending email')
 		try:
-			message = (service.users().messages().send(userId=user_id, body=message)
-					   .execute())
-			print('Message Id: %s' % message['id'])
+			message = (self.service.users().messages().send(userId="me", body=message).execute())
+			logger.debug('Email sent. message ID: %s', message['id'])
 			return message
 		except errors.HttpError as error:
-			print('An error occurred: %s' % error)
+			logger.error('An error occurred', exc_info=True)
+		
 
 	def sendSMS(self, dict):
 		logger.debug('Sending sms')
-		timestamp = dict['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%Y-%m-%d %H:%M:%S')
+		timestamp = dict['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%d/%m/%Y %H:%M:%S')
+		messageText = 'An item from you list was posted. \n\n + ' + bodyText.format(dict['title'], dict['price'], timestamp, dict['link'])
 		message = self.smsclient.messages.create(
-			body=self.smsMessage.format(
-				timestamp, dict['title'], dict['price'], dict['link']),
+			body=messageText,
 			from_='+14843010951',
 			to='+61478790532'
 		)

@@ -13,8 +13,9 @@ def scrape():
 		extractedData = scrape.extractData(rawData)
 		with SQL() as sql:
 			sql.insertIntoSQL(extractedData)
-		for i in scrape.searchDeals(extractedData):
-			sender.sendSMS(i)
+		for deal in scrape.searchDeals(extractedData):
+			sender.sendSMS(deal)
+			sender.sendEmail(deal)
 
 def main():
 	logging.config.fileConfig(config.settings['logger-config'], disable_existing_loggers=False)

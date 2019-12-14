@@ -60,7 +60,7 @@ class Scraper:
 	def searchDeals(self, deals):
 		for deal in deals:
 			for term in self.searchDeal(deal):
-				yield deal
+				yield term, deal
 
 	def searchDeal(self, deal):
 		for term in self.searchTerms:
