@@ -9,5 +9,5 @@ COPY . .
 
 CMD ["python", "./ozbargain-scraper/main.py"]
 
-# sudo docker build -t "name" .
-# sudo docker run -it --rm --name pythonrun "name"
+# sudo docker build -t ozbargain-scraper .
+# sudo docker run -it --rm --name ozbargain-scraper ozbargain-scraper

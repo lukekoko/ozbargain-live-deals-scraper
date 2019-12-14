@@ -26,7 +26,7 @@ class Notifications:
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
-		logger.debug('Notification done')
+		logger.debug('Closing notifications')
 
 	def connectGmail(self):
 		logger.debug('Connecting to Gmail')
