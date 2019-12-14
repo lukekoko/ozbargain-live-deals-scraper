@@ -11,3 +11,5 @@ CMD ["python", "./ozbargain-scraper/main.py"]
 
 # sudo docker build -t ozbargain-scraper .
 # sudo docker run -it --rm --name ozbargain-scraper ozbargain-scraper
+
+# sudo docker run -v ~/projects/ozbargain-scraper/logs/:/usr/src/app/logs/ --name ozbargain-scraper ozbargain-scraper
