@@ -1,3 +1,4 @@
+from config import searchterms
 from config import config
 import requests
 from bs4 import BeautifulSoup
@@ -18,9 +19,8 @@ logger = logging.getLogger(__name__)
 class Scraper:
 	def __init__(self):
 		logger.debug('Scraper starting')
-		self.dealsUrl = 'https://www.ozbargain.com.au/deals'
 		self.liveurl = 'https://www.ozbargain.com.au/api/live?last={}&disable=comments%2Cvotes%2Cwiki&types=Comp%2CForum'
-		self.searchTerms = config.searchTerms
+		self.searchTerms = searchterms.searchTerms
 
 	def __enter__(self):
 		return self
@@ -33,7 +33,7 @@ class Scraper:
 		timeInSec = int((datetime.now() -
 						 timedelta(hours=hours, minutes=mins)).timestamp())
 		try:
-			logger.debug('Fetching data')
+			logger.info('Fetching data')
 			request = requests.get(self.liveurl.format(timeInSec))
 			liveDealsPage = json.loads(request.text)
 			return liveDealsPage
@@ -43,7 +43,7 @@ class Scraper:
 
 	def extractData(self, data):
 		# extract title, price/percentage, link and timestamp
-		logger.debug('Extracting data from request')
+		logger.info('Extracting data from request')
 		deals = []
 		for i in data['records']:
 			dict = {}

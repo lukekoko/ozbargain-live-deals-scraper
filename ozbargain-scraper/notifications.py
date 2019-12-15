@@ -65,22 +65,22 @@ class Notifications:
 		subject = 'Ozbargain-scraper: An item matching "{}" has been posted'.format(content[0])
 		message_text = bodyTextHTML.format(content[1]['title'], content[1]['price'], timestamp,  content[1]['link'])
 		message = self.createEmailMessage(subject, message_text)
-		logger.debug('Sending email')
+		logger.info('Sending email')
 		try:
 			message = (self.service.users().messages().send(userId="me", body=message).execute())
-			logger.debug('Email sent. message ID: %s', message['id'])
+			logger.info('Email sent. message ID: %s', message['id'])
 			return message
 		except errors.HttpError as error:
 			logger.error('An error occurred', exc_info=True)
 		
 
 	def sendSMS(self, content):
-		logger.debug('Sending sms')
+		logger.info('Sending sms')
 		timestamp = content[1]['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%d/%m/%Y %H:%M:%S')
 		messageText = 'An item matching "{}" was posted. \n\n'.format(content[0]) + bodyText.format( content[1]['title'], content[1]['price'], timestamp, content[1]['link'])
 		message = self.smsclient.messages.create(
 			body=messageText,
-			from_='+14843010951',
-			to='+61478790532'
+			from_=config.settings['sms-sender'],
+			to=config.settings['sms-receiver']
 		)
-		logger.debug('sms sent')
+		logger.info('sms sent')

@@ -12,10 +12,10 @@ class SQL:
             logger.debug('Connecting to database')
             self.db = mysql.connector.connect(
                 host=config.settings['sql-host'],
-                port="3306",
-                user="root",
-                passwd="1234",
-                database="ozbargain"
+                port=config.settings['sql-port'],
+                user=config.settings['sql-user'],
+                passwd=config.settings['sql-pass'],
+                database=config.settings['sql-database']
             )
         except mysql.connector.ProgrammingError:
             logger.error("Could not connect to database", exc_info=True)
@@ -37,7 +37,7 @@ class SQL:
         self.close()
 
     def insertIntoSQL(self, list):
-        logger.debug('Inserting into SQL')
+        logger.info('Inserting into SQL')
         for item in list:
             try:
                 query = self.insertQuery.format(

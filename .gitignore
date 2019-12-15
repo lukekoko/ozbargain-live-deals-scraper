@@ -1,6 +1,6 @@
 *.pkl
 *.pyc
-*.log
+*.log*
 _pycache_
 config.py
 credentials.json
