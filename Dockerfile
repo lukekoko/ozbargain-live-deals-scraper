@@ -7,6 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "./ozbargain-scraper/main.py"]
+CMD ["python", "./ozbargain-scraper/main.py", "--minute=1", "--nosms"]
 
 

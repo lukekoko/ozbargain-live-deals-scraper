@@ -11,5 +11,9 @@ searchTerms = [
 	'RM Williams', 
 	'Tech Fast',
 	'Google nest',
-	'logitech'
+	'logitech',
+	'Nintendo',
+	'Samsung',
+	'vornado',
+	'Xenoblade'
 ]

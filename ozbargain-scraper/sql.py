@@ -11,11 +11,11 @@ class SQL:
         try:
             logger.debug('Connecting to database')
             self.db = mysql.connector.connect(
-                host=config.settings['sql-host'],
-                port=config.settings['sql-port'],
-                user=config.settings['sql-user'],
-                passwd=config.settings['sql-pass'],
-                database=config.settings['sql-database']
+                host=config.settings['sql_host'],
+                port=config.settings['sql_port'],
+                user=config.settings['sql_user'],
+                passwd=config.settings['sql_pass'],
+                database=config.settings['sql_database']
             )
         except mysql.connector.ProgrammingError:
             logger.error("Could not connect to database", exc_info=True)

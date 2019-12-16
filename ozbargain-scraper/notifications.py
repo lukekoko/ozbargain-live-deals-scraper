@@ -10,12 +10,15 @@ from apiclient import errors, discovery
 from email.mime.text import MIMEText
 import base64
 from pytz import timezone
+from fbchat import Client as fbClient
+from fbchat.models import *
+import json
 
 logger = logging.getLogger(__name__)
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-bodyText = 'Title: {} \nPrice: {} \nTimestamp: {} \nLink: {}'
+bodyText = 'Title: {} \nPrice: {} \nTimestamp: {} \n\nLink: {}'
 bodyTextHTML = '<p style="font-size:16px"><strong>Title: </strong> {} <br><strong>Price: </strong>{} <br><strong>Timestamp: </strong>{} <br><strong>Link: </strong>{}</p>'
 
 
@@ -24,6 +27,7 @@ class Notifications:
 		logger.debug('Notifications starting')
 		self.smsclient = Client(config.account_sid, config.auth_token)
 		self.service = self.connectGmail()
+		self.fbclient = self.connectFB()
 
 	def __enter__(self):
 		return self
@@ -43,7 +47,7 @@ class Notifications:
 				creds.refresh(Request())
 			else:
 				flow = InstalledAppFlow.from_client_secrets_file(
-					config.settings['gmail-credentials'], SCOPES)
+					config.settings['gmail_credentials'], SCOPES)
 				creds = flow.run_local_server(port=0)
 			# Save the credentials for the next run
 			with open('token.pickle', 'wb') as token:
@@ -52,11 +56,33 @@ class Notifications:
 		logger.debug('Gmail connected')
 		return service
 
+	def connectFB(self):
+		cookies = {}
+		try:
+			with open('./ozbargain-scraper/config/session.json','r') as f:
+				cookies = json.load(f)
+		except:
+			pass
+
+		if cookies == {} :
+			email = config.fb_user
+			password = config.fb_pass
+			client = fbClient(email,password)
+		else :
+			print('found cookies')
+			client = fbClient('','',session_cookies=cookies)
+		print("Complete")
+
+		with open('./ozbargain-scraper/config/session.json','w') as f:
+			json.dump(client.getSession(),f)
+
+		return client
+
 	def createEmailMessage(self, subject, message_text):
 		logger.debug('Creating message')
 		message = MIMEText(message_text, 'html')
-		message['to'] = config.settings['email-receiver']
-		message['from'] = config.settings['email-sender']
+		message['to'] = config.settings['email_receiver']
+		message['from'] = config.settings['email_sender']
 		message['subject'] = subject
 		return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
@@ -80,7 +106,12 @@ class Notifications:
 		messageText = 'An item matching "{}" was posted. \n\n'.format(content[0]) + bodyText.format( content[1]['title'], content[1]['price'], timestamp, content[1]['link'])
 		message = self.smsclient.messages.create(
 			body=messageText,
-			from_=config.settings['sms-sender'],
-			to=config.settings['sms-receiver']
+			from_=config.settings['sms_sender'],
+			to=config.settings['sms_receiver']
 		)
 		logger.info('sms sent')
+		
+	def sendFB(self, content):
+		timestamp = content[1]['timestamp'].astimezone(timezone('Australia/Sydney')).strftime('%d/%m/%Y %H:%M:%S')
+		messageText = 'An item matching "{}" was posted. \n\n'.format(content[0]) + bodyText.format( content[1]['title'], content[1]['price'], timestamp, content[1]['link'])
+		self.fbclient.send(Message(text=messageText), thread_id=config.settings['fb_userid'], thread_type=ThreadType.USER)

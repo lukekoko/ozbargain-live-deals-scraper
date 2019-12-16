@@ -13,10 +13,11 @@ parser.add_argument('--minute', type=int, default=5,  help='How often to check f
 parser.add_argument('--noemail', default=True, action='store_false',  help='Disable email notification')
 parser.add_argument('--nosms', default=True,  action='store_false', help='Disable sms notification')
 parser.add_argument('--nosql', default=True, action='store_false', help='Disable storing deals in sql')
+parser.add_argument('--nofb', default=True, action='store_false', help='Disable fb notification')
 
 args = parser.parse_args()
 
-logging.config.fileConfig(config.settings['logger-config'], disable_existing_loggers=False)
+logging.config.fileConfig(config.settings['logger_config'], disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 def scrape():
@@ -35,6 +36,8 @@ def scrape():
 				sender.sendEmail(deal)
 			if (args.nosms):	
 				sender.sendSMS(deal)
+			if (args.nofb):
+				sender.sendFB(deal)
 			time.sleep(1)
 
 
