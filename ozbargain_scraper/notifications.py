@@ -38,8 +38,8 @@ class Notifications:
 	def connectGmail(self):
 		logger.debug('Connecting to Gmail')
 		creds = None
-		if os.path.exists('token.pickle'):
-			with open('token.pickle', 'rb') as token:
+		if os.path.exists('./config/token.pickle'):
+			with open('./config/token.pickle', 'rb') as token:
 				creds = pickle.load(token)
 		# If there are no (valid) credentials available, let the user log in.
 		if not creds or not creds.valid:
@@ -50,7 +50,7 @@ class Notifications:
 					config.settings['gmail_credentials'], SCOPES)
 				creds = flow.run_local_server(port=0)
 			# Save the credentials for the next run
-			with open('token.pickle', 'wb') as token:
+			with open('./config/token.pickle', 'wb') as token:
 				pickle.dump(creds, token)
 		service = build('gmail', 'v1', credentials=creds, cache_discovery=False)
 		logger.debug('Gmail connected')
@@ -59,7 +59,7 @@ class Notifications:
 	def connectFB(self):
 		cookies = {}
 		try:
-			with open('./ozbargain-scraper/config/session.json','r') as f:
+			with open('./config/session.json','r') as f:
 				cookies = json.load(f)
 		except:
 			pass
@@ -73,7 +73,7 @@ class Notifications:
 			client = fbClient('','',session_cookies=cookies)
 		print("Complete")
 
-		with open('./ozbargain-scraper/config/session.json','w') as f:
+		with open('./config/session.json','w') as f:
 			json.dump(client.getSession(),f)
 
 		return client
