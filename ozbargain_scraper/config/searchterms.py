@@ -4,7 +4,7 @@ searchTerms = [
 	'Super Smash Bros', 
 	'Switch', 
 	'Addicted to Audio',
-	'AddictedtoAudio.com'
+	'AddictedtoAudio.com',
 	'PC', 
 	'Viewsonic', 
 	'Red wing', 
@@ -15,5 +15,11 @@ searchTerms = [
 	'Nintendo',
 	'Samsung',
 	'vornado',
-	'Xenoblade'
+	'Sony zx500',
+	'Sony zx300',
+	'Sony IER-M9',
+	'Campfire audio',
+	'hikari',
+	'dainichi',
+	'Viewsonic'
 ]

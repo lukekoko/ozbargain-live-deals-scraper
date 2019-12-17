@@ -1,5 +1,4 @@
-from config import searchterms
-from config import config
+from config import searchterms, config
 import requests
 from bs4 import BeautifulSoup
 import json
