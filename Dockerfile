@@ -9,6 +9,6 @@ COPY . .
 
 WORKDIR ozbargain_scraper
 
-CMD ["python", "main.py", "--hour=23", "--minute=60", "--nosms"]
+CMD ["python", "main.py", "--minute=1", "--nosms"]
 
 

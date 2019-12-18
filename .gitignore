@@ -5,3 +5,5 @@ _pycache_
 config.py
 credentials.json
 *.pickle
+venv
+.vscode
