@@ -58,13 +58,15 @@ class Scraper:
 
 	def searchDeals(self, deals):
 		for deal in deals:
-			for term in self.searchDeal(deal):
+			term = self.searchDeal(deal)
+			if (term):
 				yield term, deal
 
 	def searchDeal(self, deal):
 		for term in self.searchTerms:
 			if (re.search(r'(?i)' + re.escape(term), deal['title'])):
-				yield term
+				return term
+		return None
 
 
 

@@ -21,5 +21,7 @@ searchTerms = [
 	'Campfire audio',
 	'hikari',
 	'dainichi',
-	'Viewsonic'
+	'Viewsonic',
+	'Ubiquiti',
+	'Uniqlo',
 ]
