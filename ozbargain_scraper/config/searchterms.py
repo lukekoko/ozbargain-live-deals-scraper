@@ -24,4 +24,7 @@ searchTerms = [
     "Viewsonic",
     "Ubiquiti",
     "Uniqlo",
+    "fujifilm",
+    "Steam",
+    "JBL"
 ]

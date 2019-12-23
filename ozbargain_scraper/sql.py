@@ -20,7 +20,7 @@ class SQL:
         except mysql.connector.ProgrammingError:
             logger.error("Could not connect to database", exc_info=True)
             sys.exit(0)
-        self.cur = self.db.cursor()
+        self.cur = self.db.cursor(buffered=True)
         self.insertQuery = 'INSERT INTO livedeals (timestamp, title, price, link) VALUES ("{0}", "{1}", "{2}", "{3}") ON DUPLICATE KEY UPDATE title="{1}", price="{2}", link="{3}"'
         logger.debug("Database connected")
 
@@ -52,3 +52,5 @@ class SQL:
         self.db.commit()
         logger.debug("Data inserted into SQL")
 
+    def getDealId(self, deal):
+        query = 'SELECT id FROM livedeals as ld WHERE ld.timestamp="{0}"'.format(deal[1]["timestamp"].strftime("%Y-%m-%d %H:%M:%S"))
