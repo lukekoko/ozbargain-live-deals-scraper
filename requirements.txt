@@ -3,6 +3,6 @@ beautifulsoup4==4.8.1
 google_api_python_client==1.7.11
 google_auth_oauthlib==0.4.1
 mysql-connector-python==8.0.18
-protobuf==3.11.1
+protobuf==3.18.3
 twilio==6.35.0
 fbchat==1.8.3
